@@ -17,11 +17,54 @@ body { font-family: 'Crimson Pro', serif; background: var(--bg); color: var(--te
 
 @media (min-width: 768px) {
   body { max-width: 100%; flex-direction: row; height: 100vh; }
-  #header { width: 340px; min-width: 300px; max-width: 360px; height: 100vh; overflow-y: auto; border-bottom: none; border-right: 3px solid var(--active); flex-shrink: 0; display: flex; flex-direction: column; padding-bottom: 20px; -webkit-overflow-scrolling: touch; }
-  #content { flex: 1; overflow-y: auto; height: 100vh; padding: 20px 24px 40px; -webkit-overflow-scrolling: touch; }
-  #bottom-nav { position: fixed; bottom: 0; left: 340px; right: 0; border-top: 3px solid var(--active); border-left: none; }
-  #content { padding-bottom: 80px; }
-  #dropdown { max-width: 340px; }
+  #header { width: 360px; min-width: 320px; max-width: 380px; height: 100vh; overflow-y: auto; border-bottom: none; border-right: 3px solid var(--active); flex-shrink: 0; display: flex; flex-direction: column; padding-bottom: 20px; -webkit-overflow-scrolling: touch; }
+  #content { flex: 1; overflow-y: auto; height: 100vh; padding: 24px 32px 90px; -webkit-overflow-scrolling: touch; max-width: 900px; }
+  #bottom-nav { position: fixed; bottom: 0; left: 360px; right: 0; border-top: 3px solid var(--active); border-left: none; }
+  #dropdown { max-width: 380px; }
+  /* Desktop: bigger text and cards */
+  .card { padding: 22px; margin-bottom: 16px; }
+  .card p { font-size: 15px; line-height: 1.9; }
+  .card-label { font-size: 10px; letter-spacing: 5px; }
+  .cause-item { padding: 14px 18px; margin-bottom: 10px; }
+  .cause-title { font-size: 14px; }
+  .cause-desc { font-size: 13.5px; line-height: 1.7; }
+  .cause-detail { font-size: 12.5px; }
+  .brain-item { padding: 18px; margin-bottom: 12px; }
+  .brain-name { font-size: 15px; }
+  .brain-role { font-size: 11px; }
+  .brain-desc { font-size: 14px; }
+  .brain-finding { font-size: 13px; line-height: 1.7; padding: 10px 14px; }
+  .neuro-grid { grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .neuro-item { padding: 14px; }
+  .neuro-name { font-size: 13px; }
+  .neuro-role { font-size: 12px; }
+  .treat-card { padding: 20px; margin-bottom: 14px; }
+  .treat-name { font-size: 17px; }
+  .treat-mech { font-size: 14px; }
+  .treat-notes { font-size: 13px; padding: 12px 16px; }
+  .treat-warning { font-size: 13px; padding: 10px 16px; }
+  .sym-item { padding: 12px 16px; margin-bottom: 8px; }
+  .sym-text { font-size: 14px; line-height: 1.6; }
+  .sym-section-title { font-size: 12px; padding: 8px 14px; }
+  .compare-table th { font-size: 12px; padding: 12px 14px; }
+  .compare-table td { font-size: 14px; padding: 12px 14px; }
+  .section-heading { font-size: 13px; }
+  .nav-btn { padding: 12px 8px 14px; }
+  .nav-icon { font-size: 20px; }
+  .nav-label { font-size: 9px; letter-spacing: 2px; }
+  .phase-chip { padding: 6px 16px; font-size: 12px; }
+  .footer-bar span { font-size: 10px; }
+  .criteria-item { padding: 10px 0; }
+  .criteria-text { font-size: 14px; }
+}
+
+/* Extra wide screens */
+@media (min-width: 1200px) {
+  #header { width: 400px; max-width: 420px; }
+  #bottom-nav { left: 400px; }
+  #dropdown { max-width: 420px; }
+  #content { padding: 28px 40px 90px; }
+  .neuro-grid { grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
 }
 .header-eyebrow { font-size: 9px; letter-spacing: 4px; color: var(--muted); font-family: monospace; margin-bottom: 4px; }
 .header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
