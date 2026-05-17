@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+<title>TDAH · Atlas Clínico v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+--bg: #0D0D1A; --surface: #13132A; --surface2: #1A1A35; --border: #2A2A50;
+--muted: #6B6B9A; --light: #9898C8; --text: #E8E8F8; --text2: #B0B0D8;
+--active: #E67E22; --active-glow: rgba(230,126,34,0.3);
+}
+body { font-family: 'Crimson Pro', serif; background: var(--bg); color: var(--text); height: 100vh; max-width: 520px; margin: 0 auto; overflow: hidden; display: flex; flex-direction: column; }
+#header { background: linear-gradient(180deg, #0A0A18 0%, #13132A 100%); padding: 16px 16px 0; position: relative; z-index: 100; border-bottom: 3px solid var(--active); transition: border-color 0.4s; flex-shrink: 0; }
+
+@media (min-width: 768px) {
+  body { max-width: 100%; flex-direction: row; height: 100vh; }
+  #header { width: 340px; min-width: 300px; max-width: 360px; height: 100vh; overflow-y: auto; border-bottom: none; border-right: 3px solid var(--active); flex-shrink: 0; display: flex; flex-direction: column; padding-bottom: 20px; -webkit-overflow-scrolling: touch; }
+  #content { flex: 1; overflow-y: auto; height: 100vh; padding: 20px 24px 40px; -webkit-overflow-scrolling: touch; }
+  #bottom-nav { position: fixed; bottom: 0; left: 340px; right: 0; border-top: 3px solid var(--active); border-left: none; }
+  #content { padding-bottom: 80px; }
+  #dropdown { max-width: 340px; }
+}
+.header-eyebrow { font-size: 9px; letter-spacing: 4px; color: var(--muted); font-family: monospace; margin-bottom: 4px; }
+.header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.header-title { font-family: 'Cinzel', serif; font-size: 17px; color: var(--text); font-weight: 700; letter-spacing: 1px; }
+.header-badge { font-size: 10px; color: var(--muted); font-family: monospace; border: 1px solid var(--border); padding: 2px 8px; border-radius: 4px; }
+#selector-btn { background: var(--surface2); border: 2px solid var(--active); border-radius: 10px; padding: 11px 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; width: 100%; transition: border-color 0.4s, box-shadow 0.3s; box-shadow: 0 0 20px var(--active-glow); }
+.sel-left { display: flex; align-items: center; gap: 12px; }
+.sel-icon { font-size: 24px; }
+.sel-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.sel-sub { font-size: 10px; color: var(--muted); font-family: monospace; margin-top: 2px; }
+.sel-arrow { color: var(--muted); font-size: 13px; }
+#dropdown { display: none; background: #0A0A18; border-top: 1px solid var(--border); position: absolute; left: 0; right: 0; z-index: 200; box-shadow: 0 20px 40px rgba(0,0,0,0.6); max-width: 520px; margin: 0 auto; }
+#dropdown.open { display: block; }
+.dd-item { padding: 14px 16px; display: flex; align-items: center; gap: 14px; cursor: pointer; border-left: 4px solid transparent; transition: background 0.2s; }
+.dd-item:active { background: var(--surface2); }
+.dd-item-name { font-size: 14px; color: var(--text); font-weight: 600; }
+.dd-item-sub { font-size: 10px; color: var(--muted); font-family: monospace; margin-top: 2px; }
+.dd-item-desc { font-size: 12px; color: var(--text2); margin-top: 3px; font-style: italic; }
+#kpi-bar { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; margin-top: 10px; margin-bottom: 2px; }
+.kpi-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 6px; text-align: center; }
+.kpi-label { font-size: 8px; color: var(--muted); font-family: monospace; letter-spacing: 1px; margin-bottom: 3px; }
+.kpi-value { font-size: 15px; font-weight: 700; color: var(--text); }
+#searchBox { width: 100%; margin-top: 8px; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); font-family: 'Crimson Pro', serif; font-size: 13px; outline: none; transition: border-color 0.3s; }
+#searchBox:focus { border-color: var(--active); }
+#searchBox::placeholder { color: var(--muted); font-style: italic; }
+#toolbar { display: flex; gap: 8px; margin-top: 8px; margin-bottom: 0; padding-bottom: 10px; }
+.tool-btn { padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text2); font-size: 11px; font-family: monospace; cursor: pointer; letter-spacing: 0.5px; transition: all 0.2s; white-space: nowrap; }
+.tool-btn:active { opacity: 0.7; }
+.tool-btn.primary { background: var(--active); border-color: var(--active); color: white; }
+#content { padding: 16px 14px 20px; flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.phase-bar { display: flex; gap: 6px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+.phase-bar::-webkit-scrollbar { display: none; }
+.phase-chip { padding: 5px 13px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap; border: 1px solid var(--border); color: var(--text2); background: var(--surface); font-family: monospace; letter-spacing: 0.5px; }
+.card { background: var(--surface); border-radius: 12px; padding: 18px; margin-bottom: 14px; border: 1px solid var(--border); position: relative; overflow: hidden; }
+.card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--active), transparent); }
+.card p { line-height: 1.85; font-size: 14px; color: var(--text2); }
+.card-label { font-size: 9px; color: var(--muted); letter-spacing: 4px; font-family: monospace; margin-bottom: 12px; text-transform: uppercase; }
+.section-heading { font-size: 12px; color: var(--active); font-family: monospace; letter-spacing: 2px; margin: 16px 0 8px; padding-left: 10px; border-left: 3px solid var(--active); }
+.cause-item { display: flex; gap: 12px; padding: 12px 14px; background: var(--surface2); border-radius: 8px; margin-bottom: 8px; border-left: 3px solid var(--active); transition: border-color 0.3s; align-items: flex-start; }
+.cause-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+.cause-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+.cause-desc { font-size: 12.5px; color: var(--text2); line-height: 1.6; }
+.cause-detail { font-size: 11.5px; color: var(--muted); margin-top: 4px; font-style: italic; }
+.brain-item { background: var(--surface2); border-radius: 10px; padding: 14px; margin-bottom: 10px; border: 1px solid var(--border); position: relative; }
+.brain-item::after { content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 4px; background: var(--active); border-radius: 10px 0 0 10px; }
+.brain-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.brain-icon { font-size: 22px; }
+.brain-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.brain-role { display: inline-block; font-size: 10px; font-family: monospace; padding: 2px 8px; border-radius: 20px; margin-left: 6px; color: white; }
+.brain-desc { font-size: 13px; color: var(--text2); line-height: 1.7; margin-bottom: 8px; }
+.brain-finding { font-size: 12px; color: var(--muted); line-height: 1.6; padding: 8px 10px; background: rgba(255,255,255,0.03); border-radius: 6px; border-left: 2px solid var(--border); }
+.brain-finding strong { color: var(--light); }
+.neuro-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+.neuro-item { background: var(--surface2); border-radius: 8px; padding: 12px; border: 1px solid var(--border); text-align: center; }
+.neuro-molecule { font-size: 22px; margin-bottom: 4px; }
+.neuro-name { font-size: 12px; font-weight: 600; color: var(--text); }
+.neuro-role { font-size: 11px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+.neuro-alteration { font-size: 10px; font-family: monospace; padding: 3px 8px; border-radius: 20px; margin-top: 6px; display: inline-block; font-weight: bold; }
+.compare-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+.compare-table th { padding: 10px 12px; font-size: 12px; font-family: monospace; letter-spacing: 1px; text-align: left; border-bottom: 2px solid var(--border); }
+.compare-table td { padding: 10px 12px; font-size: 13px; color: var(--text2); border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.5; }
+.compare-table tr:last-child td { border-bottom: none; }
+.compare-table .row-label { font-size: 11px; font-family: monospace; color: var(--muted); font-weight: bold; white-space: nowrap; }
+.treat-card { background: var(--surface); border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid var(--border); position: relative; overflow: hidden; }
+.treat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--active); }
+.treat-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.treat-category { font-size: 9px; font-family: monospace; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
+.treat-name { font-size: 16px; font-weight: 600; color: var(--text); }
+.evidence-pill { padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: bold; color: white; white-space: nowrap; flex-shrink: 0; }
+.treat-body { display: flex; gap: 10px; align-items: flex-start; }
+.treat-emoji { font-size: 22px; flex-shrink: 0; }
+.treat-mech { font-size: 13px; color: var(--text2); line-height: 1.7; }
+.treat-notes { margin-top: 10px; padding: 10px 12px; background: rgba(230,126,34,0.1); border-radius: 8px; border-left: 3px solid var(--active); font-size: 12px; color: var(--light); line-height: 1.6; }
+.treat-warning { margin-top: 8px; padding: 8px 12px; background: rgba(231,76,60,0.1); border-radius: 6px; border-left: 3px solid #E74C3C; font-size: 12px; color: #E74C3C; line-height: 1.5; }
+.sym-section { margin-bottom: 14px; }
+.sym-section-title { font-size: 11px; font-family: monospace; letter-spacing: 2px; padding: 6px 12px; border-radius: 6px; margin-bottom: 8px; font-weight: bold; }
+.sym-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; background: var(--surface2); border-radius: 8px; margin-bottom: 6px; border-left: 3px solid var(--active); }
+.sym-bullet { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 6px; background: var(--active); }
+.sym-text { font-size: 13.5px; color: var(--text2); line-height: 1.5; }
+.criteria-item { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); align-items: flex-start; }
+.criteria-item:last-child { border-bottom: none; }
+.criteria-num { font-size: 11px; font-family: monospace; color: var(--active); flex-shrink: 0; padding-top: 2px; font-weight: bold; }
+.criteria-text { font-size: 13px; color: var(--text2); line-height: 1.5; }
+.footer-bar { background: var(--surface); border-radius: 8px; padding: 12px 14px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px; border: 1px solid var(--border); }
+.footer-bar span { font-size: 9px; color: var(--muted); font-family: monospace; }
+#studyCard { display: none; }
+#studyCard.active { display: block; }
+.study-question { font-size: 15px; font-weight: 600; color: var(--text); line-height: 1.6; margin-bottom: 16px; }
+.study-reveal { padding: 10px 14px; border-radius: 8px; background: var(--surface2); border: 1px dashed var(--border); font-size: 13px; color: var(--text2); line-height: 1.7; margin-bottom: 12px; }
+.study-nav { display: flex; gap: 8px; justify-content: space-between; }
+.study-nav button { flex: 1; padding: 9px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text2); font-size: 12px; font-family: monospace; cursor: pointer; }
+.study-nav .next-btn { background: var(--active); border-color: var(--active); color: white; }
+.study-counter { font-size: 10px; font-family: monospace; color: var(--muted); text-align: center; margin-bottom: 10px; }
+.no-results { text-align: center; padding: 30px 20px; color: var(--muted); font-style: italic; font-size: 14px; }
+#bottom-nav { position: relative; width: 100%; background: #0A0A18; border-top: 3px solid var(--active); display: flex; z-index: 100; flex-shrink: 0; }
+.nav-btn { flex: 1; padding: 10px 4px 13px; border: none; background: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; border-top: 3px solid transparent; margin-top: -3px; }
+.nav-btn.active { border-top-color: var(--active); }
+.nav-icon { font-size: 18px; }
+.nav-label { font-size: 8px; font-family: monospace; letter-spacing: 1px; color: var(--muted); font-weight: bold; }
+.nav-btn.active .nav-label { color: var(--text); }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+@media print {
+  #bottom-nav, #toolbar, #searchBox, #kpi-bar { display: none !important; }
+  body { max-width: 100%; background: white; color: black; }
+  .tab-panel { display: block !important; }
+  .card, .brain-item, .treat-card, .sym-item, .cause-item { break-inside: avoid; border: 1px solid #ccc; }
+}
+
+@media (max-width: 520px) {
+  body { max-width: 100%; }
+  #header { padding: 12px 12px 0; }
+  .header-eyebrow { font-size: 7px; letter-spacing: 3px; }
+  .header-title { font-size: 15px; }
+  .header-badge { font-size: 9px; padding: 2px 6px; }
+  #selector-btn { padding: 9px 12px; border-radius: 8px; }
+  .sel-icon { font-size: 20px; }
+  .sel-name { font-size: 13px; }
+  .sel-sub { font-size: 9px; }
+  #kpi-bar { grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 8px; }
+  .kpi-card { padding: 6px 4px; }
+  .kpi-label { font-size: 7px; letter-spacing: 0.5px; }
+  .kpi-value { font-size: 13px; }
+  #searchBox { font-size: 14px; padding: 10px 12px; margin-top: 6px; }
+  #toolbar { gap: 6px; margin-top: 6px; padding-bottom: 8px; flex-wrap: wrap; }
+  .tool-btn { padding: 8px 12px; font-size: 11px; flex: 1; min-width: 0; text-align: center; }
+  #dropdown { max-width: 100%; }
+  .dd-item { padding: 12px 14px; gap: 10px; }
+  #content { padding: 12px 10px 16px; }
+  .phase-chip { padding: 4px 10px; font-size: 10px; }
+  .card { padding: 14px; margin-bottom: 10px; }
+  .card p { font-size: 13px; line-height: 1.7; }
+  .card-label { font-size: 8px; letter-spacing: 3px; }
+  .cause-item { padding: 10px 12px; margin-bottom: 6px; }
+  .cause-icon { font-size: 18px; }
+  .cause-title { font-size: 12px; }
+  .cause-desc { font-size: 12px; }
+  .cause-detail { font-size: 11px; }
+  .neuro-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .neuro-item { padding: 10px 8px; }
+  .brain-item { padding: 12px; margin-bottom: 8px; }
+  .brain-icon { font-size: 18px; }
+  .brain-name { font-size: 13px; }
+  .brain-role { font-size: 9px; padding: 2px 6px; }
+  .brain-desc { font-size: 12px; line-height: 1.6; }
+  .brain-finding { font-size: 11px; line-height: 1.5; padding: 6px 8px; }
+  .compare-table th { padding: 8px 6px; font-size: 10px; }
+  .compare-table td { padding: 8px 6px; font-size: 11px; }
+  .compare-table .row-label { font-size: 9px; }
+  .sym-section-title { font-size: 10px; padding: 5px 10px; }
+  .sym-item { padding: 8px 10px; margin-bottom: 5px; gap: 8px; }
+  .sym-text { font-size: 12.5px; }
+  .treat-card { padding: 14px; margin-bottom: 10px; }
+  .treat-category { font-size: 8px; letter-spacing: 2px; }
+  .treat-name { font-size: 14px; }
+  .evidence-pill { padding: 3px 10px; font-size: 9px; }
+  .treat-emoji { font-size: 18px; }
+  .treat-mech { font-size: 12px; line-height: 1.6; }
+  .treat-notes { padding: 8px 10px; font-size: 11px; }
+  .treat-warning { padding: 6px 10px; font-size: 11px; }
+  .study-question { font-size: 14px; }
+  .study-reveal { font-size: 12px; }
+  .study-nav button { padding: 10px; font-size: 12px; min-height: 44px; }
+  .footer-bar span { font-size: 8px; }
+  .nav-btn { padding: 8px 4px 10px; min-height: 52px; }
+  .nav-icon { font-size: 20px; }
+}
+
+@media (max-width: 360px) {
+  .header-title { font-size: 14px; }
+  .sel-name { font-size: 12px; }
+  .kpi-value { font-size: 12px; }
+  .tool-btn { padding: 7px 8px; font-size: 10px; }
+  .treat-name { font-size: 13px; }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .dd-item, .nav-btn, .tool-btn, .study-nav button {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  #selector-btn { min-height: 48px; }
+  .nav-btn { min-height: 52px; }
+  .tool-btn { min-height: 44px; }
+}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="header-eyebrow">NEUROPSIQUIATRÍA · NEUROCIENCIA COGNITIVA</div>
+  <div class="header-row">
+    <div class="header-title">Déficit Atencional</div>
+    <span class="header-badge">DSM-5-TR · ICD-11</span>
+  </div>
+  <button id="selector-btn" onclick="toggleDropdown()">
+    <div class="sel-left">
+      <span class="sel-icon" id="sel-icon">🔀</span>
+      <div>
+        <div class="sel-name" id="sel-name">TDAH Combinado</div>
+        <div class="sel-sub" id="sel-sub">TDAH-C · Inatención + Hiperactividad</div>
+      </div>
+    </div>
+    <span class="sel-arrow" id="sel-arrow">▼</span>
+  </button>
+  <div id="dropdown"></div>
+  <div id="kpi-bar">
+    <div class="kpi-card"><div class="kpi-label">PREVALENCIA</div><div class="kpi-value" id="kpi-prev">5–7%</div></div>
+    <div class="kpi-card"><div class="kpi-label">HERENCIA</div><div class="kpi-value" id="kpi-her">74%</div></div>
+    <div class="kpi-card"><div class="kpi-label">EDAD DX</div><div class="kpi-value" id="kpi-age">6–12</div></div>
+    <div class="kpi-card"><div class="kpi-label">PERSIST.</div><div class="kpi-value" id="kpi-per">60%</div></div>
+  </div>
+  <input id="searchBox" placeholder="🔍  Buscar: dopamina, metilfenidato, CPF..." oninput="doSearch(this.value)">
+  <div id="toolbar">
+    <button class="tool-btn primary" onclick="toggleStudyMode()">📖 Modo Estudio</button>
+    <button class="tool-btn" onclick="exportPDF()">🖨 Exportar PDF</button>
+    <button class="tool-btn" onclick="clearSearch()">✕ Limpiar</button>
+  </div>
+</div>
+
+<div id="content">
+  <div class="phase-bar" id="phase-bar"></div>
+  <div id="studyCard" class="card"></div>
+  <div id="noResults" class="no-results" style="display:none">Sin resultados para "<span id="noResultsTerm"></span>"</div>
+  <div class="tab-panel active" id="tab-causas"><div id="causas-content"></div></div>
+  <div class="tab-panel" id="tab-cerebro"><div id="cerebro-content"></div></div>
+  <div class="tab-panel" id="tab-sintomas"><div id="sintomas-content"></div></div>
+  <div class="tab-panel" id="tab-tratamiento"><div id="tratamiento-content"></div></div>
+  <div class="footer-bar">
+    <span>DSM-5-TR · ICD-11 · NICE 2024 · CADDRA 2023</span>
+    <span>Atlas Clínico · v2.1 · 2026</span>
+  </div>
+</div>
+
+<nav id="bottom-nav">
+  <button class="nav-btn active" id="nav-causas" onclick="switchTab('causas',this)"><span class="nav-icon">🧬</span><span class="nav-label">CAUSAS</span></button>
+  <button class="nav-btn" id="nav-cerebro" onclick="switchTab('cerebro',this)"><span class="nav-icon">🧠</span><span class="nav-label">CEREBRO</span></button>
+  <button class="nav-btn" id="nav-sintomas" onclick="switchTab('sintomas',this)"><span class="nav-icon">📊</span><span class="nav-label">SÍNTOMAS</span></button>
+  <button class="nav-btn" id="nav-tratamiento" onclick="switchTab('tratamiento',this)"><span class="nav-icon">💊</span><span class="nav-label">TRATAMIENTO</span></button>
+</nav>
+
+<script>
+const diseases=[{id:0,name:"TDAH Combinado",abbr:"TDAH-C",sub:"Inatención + Hiperactividad-Impulsividad",icon:"🔀",color:"#E67E22",colorGlow:"rgba(230,126,34,0.25)",colorLight:"rgba(230,126,34,0.15)",kpi:{prev:"5–7%",her:"74%",age:"6–12",per:"60%"},phases:["INATENCIÓN","HIPERACTIVIDAD","IMPULSIVIDAD","DESREGULACIÓN"],phaseColors:["#3498DB","#E74C3C","#F39C12","#9B59B6"],dsm_criteria:"≥ 6 síntomas de inatención Y ≥ 6 de hiperactividad-impulsividad (≥ 5 en adultos ≥17 años), presentes antes de los 12 años, en ≥ 2 contextos, con deterioro funcional significativo.",description:"Presentación más frecuente y más diagnosticada del TDAH. Combina déficits atencionales sostenidos con hiperactividad motora e impulsividad conductual. Afecta 5–7% de niños y 2.5–4% de adultos globalmente. Es un trastorno del neurodesarrollo con base neurobiológica robusta, no un problema de voluntad o crianza.",causas:[{icon:"🧬",title:"Arquitectura Genética Poligénica (h² = 74%)",desc:"TDAH es uno de los trastornos psiquiátricos más heredables. Estudio GWAS 2023 (Demontis et al.) identificó 27 loci de riesgo significativos en >225.000 participantes.",detail:"Genes principales: DAT1/SLC6A3 (transportador dopamina), DRD4 (receptor D4 — alelo 7R), DRD5, SNAP25 (exocitosis sináptica), LPHN3 (latrofilina 3), FOXP2. Riesgo poligénico acumulativo."},{icon:"⚗️",title:"Déficit Dopaminérgico Frontal-Estriatal",desc:"Hipofunción dopaminérgica en circuitos prefrontales y estriatales. La dopamina modula atención, motivación, recompensa y control ejecutivo. El TDAH es fundamentalmente un trastorno dopaminérgico.",detail:"PET con racloprida: ↑ densidad de DAT (transportador dopamina) en estriado = mayor recaptación = menos dopamina sináptica. El metilfenidato bloquea exactamente este transportador."},{icon:"🧠",title:"Retraso Madurativo Cortical",desc:"La corteza prefrontal madura 2–5 años más tarde en TDAH. El grosor cortical alcanza su pico a los 10.5 años en controles vs 14.2 años en TDAH (Shaw et al., PNAS 2007).",detail:"La secuencia madurativa es normal pero retrasada. Regiones sensoriomotoras maduran primero; CPF dorsolateral y medial maduran último. Esto explica la mejoría parcial en adultos."},{icon:"🌍",title:"Factores Perinatales y Ambientales",desc:"Prematuridad (<32 semanas: OR 2.6), bajo peso al nacer (<1500g: OR 2.9), exposición prenatal a tabaco (OR 2.4), alcohol fetal, hipoxia perinatal, estrés materno severo.",detail:"Tabaco prenatal reduce volumen del núcleo caudado. Exposición a plomo ambiental se asocia con déficit atencional dosis-dependiente. Desnutrición temprana afecta mielinización."},{icon:"🔥",title:"Neuroinflamación y Estrés Oxidativo",desc:"Elevación de citoquinas proinflamatorias (IL-6, TNF-α) en TDAH. Estrés oxidativo medido por 8-OHdG elevado. Disfunción mitocondrial con reducción de ATP cerebral.",detail:"Meta-análisis 2023: PCR y IL-6 significativamente elevadas en TDAH vs controles. Omega-3 y NAC actúan parcialmente en esta vía."},{icon:"🕐",title:"Disfunción del Sistema de Recompensa (Delay Aversion)",desc:"Aversión al retraso: preferencia por recompensas pequeñas inmediatas sobre grandes diferidas. Hipoactivación del circuito de recompensa (estriado ventral) ante recompensas futuras.",detail:"Modelo de Sonuga-Barke: doble vía — déficit ejecutivo (CPF) + aversión al retraso (circuito mesolímbico). Ambos contribuyen independientemente."},{icon:"⏰",title:"Alteración de la Percepción Temporal",desc:"Déficit en la estimación, producción y reproducción de intervalos temporales. 'Ceguera temporal': incapacidad de percibir el paso del tiempo con precisión.",detail:"Involucra cerebelo, ganglios basales y CPF. Contribuye a procrastinación, impuntualidad crónica y dificultad para planificar. Metilfenidato normaliza parcialmente la cronometría."},{icon:"🌙",title:"Disregulación Circadiana y del Sueño",desc:"75% de adultos con TDAH tienen retraso de fase circadiana. Melatonina nocturna se secreta 1.5h más tarde. Insomnio de conciliación en 70–80% de los casos.",detail:"Polimorfismos en CLOCK y PER2 asociados a TDAH. La privación crónica de sueño empeora síntomas atencionales e impulsivos. La melatonina exógena mejora inicio de sueño."}],regiones:[{icon:"🎛️",name:"Corteza Prefrontal (CPF)",role:"CENTRO EJECUTIVO",roleColor:"#E67E22",desc:"Director de orquesta del cerebro. CPF dorsolateral: memoria de trabajo y planificación. CPF ventromedial: toma de decisiones. CPF orbitofrontal: inhibición y regulación emocional. Todas hipofuncionan en TDAH.",finding:"<strong>Hallazgos:</strong> Reducción de volumen 3–5%. Hipoactivación en fMRI durante tareas Go/No-Go. Menor grosor cortical que normaliza con la edad en 50% de casos."},{icon:"🔄",name:"Estriado (Caudado + Putamen)",role:"FILTRO ATENCIONAL",roleColor:"#E74C3C",desc:"Integra información motora, cognitiva y motivacional. El núcleo caudado filtra estímulos irrelevantes. El putamen programa secuencias motoras. Ambos hipoactivos en TDAH.",finding:"<strong>Hallazgos:</strong> Volumen del caudado reducido 5–10% bilateral. ↑ Densidad de DAT (transportador dopamina) en estriado dorsal = mayor recaptación dopaminérgica."},{icon:"🌀",name:"Núcleo Accumbens (NAcc)",role:"RECOMPENSA DEFICIENTE",roleColor:"#F39C12",desc:"Centro del sistema de recompensa. Hipoactivación ante recompensas diferidas. Explica la aversión al retraso, búsqueda de estimulación constante y dificultad motivacional.",finding:"<strong>Hallazgos PET:</strong> Menor liberación de dopamina en NAcc ante recompensa anticipada. La anfetamina normaliza la señal. Hiperactivación ante recompensas inmediatas (sesgo temporal)."},{icon:"🌊",name:"Corteza Cingulada Anterior (CCA)",role:"DETECCIÓN DE ERRORES",roleColor:"#9B59B6",desc:"Monitor de conflictos cognitivos y detección de errores. En TDAH falla la señal de 'algo está mal', contribuyendo a errores por descuido y falta de autocorrección.",finding:"<strong>Hallazgos:</strong> Hipoactivación CCA dorsal durante tareas de conflicto (Stroop, Flanker). Menor volumen de materia gris. Conectividad reducida CCA↔CPF dorsolateral."},{icon:"🧩",name:"Cerebelo",role:"TEMPORIZACIÓN",roleColor:"#27AE60",desc:"No solo coordinación motora: el cerebelo regula temporización cognitiva, automatización de secuencias y aprendizaje procedimental. Explica torpeza motora y déficit temporal en TDAH.",finding:"<strong>Hallazgos:</strong> Reducción de volumen del vermis cerebeloso posterior (lóbulos VIII–X). Menor volumen cerebeloso total (-3.5%). Correlaciona con déficit en estimación temporal."},{icon:"🌉",name:"Sustancia Blanca (Conectoma)",role:"CONEXIONES LENTAS",roleColor:"#3498DB",desc:"Los tractos de fibras que conectan CPF con estriado, cerebelo y parietal están inmaduros o tienen menor integridad. La información viaja más lenta y con más 'ruido'.",finding:"<strong>Hallazgos DTI:</strong> Reducción de anisotropía fraccional en fascículo frontal-estriatal, cingulado y corona radiata. Correlaciona con severidad de inatención."},{icon:"🔵",name:"Corteza Parietal Posterior",role:"ATENCIÓN ESPACIAL",roleColor:"#2980B9",desc:"Red atencional dorsal (orientación espacial) y ventral (reorientación ante estímulos salientes). Hipoactivación parietal derecha contribuye a distractibilidad.",finding:"<strong>Hallazgos:</strong> Menor activación parietal derecha en tareas de atención sostenida. Conectividad funcional parietal-frontal reducida. Normaliza parcialmente con estimulantes."},{icon:"🔴",name:"Red de Modo Defecto (DMN)",role:"INTRUSIÓN ATENCIONAL",roleColor:"#E74C3C",desc:"La DMN debería desactivarse durante tareas cognitivas. En TDAH permanece activa, 'intrudiéndose' en la atención dirigida. Explica las 'desconexiones' y el soñar despierto.",finding:"<strong>Hallazgos fMRI:</strong> Fallo en la anticorrelación DMN↔red de tarea. La DMN no se suprime adecuadamente. Metilfenidato restaura parcialmente esta anticorrelación."}],sintomas:{inat:["No presta atención a detalles / errores por descuido frecuentes","Dificultad para mantener la atención en tareas o juegos","Parece no escuchar cuando se le habla directamente","No sigue instrucciones y no finaliza tareas","Dificultad para organizar tareas y actividades","Evita o rechaza tareas que requieren esfuerzo mental sostenido","Pierde objetos necesarios frecuentemente (llaves, celular, documentos)","Se distrae fácilmente con estímulos irrelevantes","Olvidadizo en actividades cotidianas"],hiper:["Se retuerce en el asiento, mueve manos y pies constantemente","Se levanta cuando debería permanecer sentado","Corre o trepa en situaciones inapropiadas (en adultos: inquietud interna)","Incapaz de jugar o realizar actividades tranquilamente","'En marcha' o actúa como si tuviera un motor","Habla excesivamente (logorrea situacional)","Responde antes de que terminen la pregunta","Dificultad para esperar turno (filas, conversaciones)","Interrumpe o se entromete en conversaciones y actividades ajenas"],desreg:["Frustración desproporcionada ante obstáculos menores","Irritabilidad reactiva con recuperación rápida","Intolerancia a la espera y aburrimiento","Dificultad para modular intensidad emocional","Cambios rápidos de humor (labilidad emocional, no ciclicidad)","Hipersensibilidad al rechazo (RSD — Rejection Sensitivity Dysphoria)","Explosiones emocionales seguidas de arrepentimiento","Dificultad para iniciar tareas aversivas (parálisis de inicio)"]},dsm_criteria_detail:[{n:"A1",text:"≥ 6 síntomas de inatención (≥ 5 en adultos ≥17 años) persistentes por ≥ 6 meses, inconsistentes con el nivel de desarrollo."},{n:"A2",text:"≥ 6 síntomas de hiperactividad-impulsividad (≥ 5 en adultos ≥17 años) persistentes por ≥ 6 meses."},{n:"B",text:"Varios síntomas presentes ANTES de los 12 años de edad."},{n:"C",text:"Síntomas presentes en ≥ 2 contextos (hogar, escuela/trabajo, social)."},{n:"D",text:"Evidencia clara de interferencia con funcionamiento social, académico u ocupacional."},{n:"E",text:"No se explica mejor por otro trastorno mental."}],treatments:[{cat:"ESTIMULANTES — PRIMERA LÍNEA",emoji:"⚡",items:[{name:"Metilfenidato (MPH)",evidence:"A",evidColor:"#27AE60",indication:"INATENCIÓN · HIPERACTIVIDAD · IMPULSIVIDAD",mech:"Bloquea transportador de dopamina (DAT) y noradrenalina (NET) en CPF y estriado. Aumenta dopamina y noradrenalina sinápticas sin liberar monoaminas directamente.",notes:"Eficacia en 70–80% de pacientes. Formulaciones: liberación inmediata (Ritalin 3–4h), prolongada (Concerta 10–12h, Medikinet 8h). Dosis: 0.5–1.2 mg/kg/día.",warning:"Monitoreo: FC, PA, peso, talla en niños. Insomnio de conciliación si dosis vespertina. Reducción apetito. No causa adicción a dosis terapéuticas."},{name:"Lisdexanfetamina (LDX)",evidence:"A",evidColor:"#27AE60",indication:"TDAH MODERADO-SEVERO · FALLO A MPH",mech:"Profármaco: la lisina se escinde en el eritrocito liberando d-anfetamina gradualmente. Libera dopamina y noradrenalina vesicular + bloquea recaptación. Mayor eficacia en aversión al retraso.",notes:"Duración 12–14h. Menor potencial de abuso por activación enzimática obligatoria. Vyvanse 30–70mg. Aprobado en niños ≥6 años y adultos.",warning:"Mismas precauciones cardiovasculares que MPH. Mayor supresión del apetito. Contraindicado con IMAO. Monitoreo psiquiátrico si antecedentes de psicosis."}]},{cat:"NO ESTIMULANTES — SEGUNDA LÍNEA",emoji:"🎯",items:[{name:"Atomoxetina (ATX)",evidence:"A",evidColor:"#27AE60",indication:"TDAH + ANSIEDAD · TICS · ABUSO SUSTANCIAS",mech:"Inhibidor selectivo del transportador de noradrenalina (NET). En CPF, NET también recapta dopamina, por lo que atomoxetina aumenta ambas catecolaminas en CPF sin efecto estriatal.",notes:"No es sustancia controlada. Efecto pleno en 4–6 semanas. Dosis: 1.2 mg/kg/día. Útil cuando estimulantes están contraindicados o generan ansiedad.",warning:"Hepatotoxicidad rara pero grave (suspender si ictericia). Ideación suicida en <0.4% de niños. Monitoreo hepático."},{name:"Guanfacina de Liberación Prolongada",evidence:"A",evidColor:"#27AE60",indication:"TDAH + TICS · AGRESIVIDAD · DESREGULACIÓN",mech:"Agonista selectivo α2A-adrenérgico postsináptico en CPF. Fortalece señalización noradrenérgica prefrontal, mejorando memoria de trabajo y regulación emocional sin efecto dopaminérgico directo.",notes:"Intuniv 1–7mg. Especialmente eficaz en hiperactividad, impulsividad y desregulación emocional. Puede combinarse con estimulantes.",warning:"Hipotensión, bradicardia, somnolencia. NO suspender abruptamente (riesgo de hipertensión de rebote). Titular lentamente."}]},{cat:"INTERVENCIONES NO FARMACOLÓGICAS",emoji:"🧠",items:[{name:"Terapia Cognitivo-Conductual (TCC-TDAH)",evidence:"A",evidColor:"#27AE60",indication:"ADULTOS · HABILIDADES COMPENSATORIAS",mech:"Programa de Safren (Harvard/MGH): 12 sesiones enfocadas en organización, planificación, manejo de la distractibilidad y reestructuración cognitiva del autocrítico.",notes:"Evidencia nivel A en adultos con TDAH. Reduce síntomas residuales 30–40% adicional sobre medicación sola. Protocolo más validado para TDAH adulto.",warning:null},{name:"Entrenamiento Parental Conductual",evidence:"A",evidColor:"#27AE60",indication:"NIÑOS 4–12 AÑOS · PRIMERA LÍNEA EN <6",mech:"Programa de Barkley / Triple P / New Forest. Enseña a padres: refuerzo diferencial, economía de fichas, tiempo fuera efectivo, instrucciones claras, estructura temporal.",notes:"Primera línea en TDAH preescolar según NICE y AAP. Reduce conducta disruptiva 50–60%. Más eficaz que medicación sola en <6 años.",warning:null},{name:"Ejercicio Físico Aeróbico",evidence:"A",evidColor:"#27AE60",indication:"COADYUVANTE · TODAS LAS EDADES",mech:"30–45 min de ejercicio aeróbico moderado-vigoroso aumenta BDNF, dopamina y noradrenalina prefrontal. Mejora funciones ejecutivas, atención y regulación emocional agudamente.",notes:"Meta-análisis 2023: tamaño de efecto moderado (d=0.6) sobre atención e inhibición. Efecto agudo post-ejercicio dura 60–90 min. Efecto crónico con entrenamiento regular.",warning:null},{name:"Higiene del Sueño y Cronobiología",evidence:"B",evidColor:"#E67E22",indication:"INSOMNIO · RETRASO DE FASE",mech:"Horarios fijos, restricción luz azul nocturna, melatonina 0.5–3mg 1h antes. Trata el retraso de fase circadiana presente en 75% de TDAH adulto.",notes:"Melatonina aprobada en Europa para TDAH pediátrico con insomnio. Dormir bien mejora atención equivalente a 0.5 puntos de efecto.",warning:null}]}]},
+{id:1,name:"TDAH Predominio Inatento",abbr:"TDAH-I",sub:"Inatención sin Hiperactividad Significativa",icon:"🌫️",color:"#3498DB",colorGlow:"rgba(52,152,219,0.25)",colorLight:"rgba(52,152,219,0.15)",kpi:{prev:"2–3%",her:"70%",age:"9–14",per:"65%"},phases:["INATENCIÓN","TEMPO LENTO","HIPERFOCO","NIEBLA MENTAL"],phaseColors:["#3498DB","#9B59B6","#27AE60","#95A5A6"],dsm_criteria:"≥ 6 síntomas de inatención (≥ 5 en adultos ≥17 años) pero < 6 de hiperactividad-impulsividad. Presentes antes de los 12 años, en ≥ 2 contextos.",description:"Subtipo más infradiagnosticado, especialmente en mujeres y adultos. Sin la hiperactividad visible, pasa desapercibido como 'flojo', 'soñador' o 'desmotivado'. Predomina la inatención, desorganización, olvidos y dificultad para iniciar tareas. Puede incluir rasgos de Tempo Cognitivo Lento (SCT/CDS).",causas:[{icon:"🧬",title:"Perfil Genético Diferenciado del TDAH-C",desc:"Comparte la mayoría de genes de riesgo con TDAH-C pero con menor carga de variantes dopaminérgicas estriatales. Mayor asociación con variantes noradrenérgicas y serotoninérgicas.",detail:"Menor frecuencia del alelo DRD4-7R que en TDAH-C. Mayor asociación con ADRA2A (receptor α2A-adrenérgico), COMT Val158Met, y variantes en transportador de serotonina (5-HTTLPR)."},{icon:"⚗️",title:"Disfunción Noradrenérgica Predominante",desc:"Mientras TDAH-C es primariamente dopaminérgico-estriatal, TDAH-I tiene mayor componente noradrenérgico prefrontal. La noradrenalina regula alerta tónica y señal/ruido en CPF.",detail:"Explica la mejor respuesta a atomoxetina y guanfacina en TDAH-I vs TDAH-C. El locus coeruleus (fuente de NA cerebral) muestra menor actividad tónica."},{icon:"🌙",title:"Tempo Cognitivo Lento (SCT/CDS)",desc:"30–50% de TDAH-I presenta Cognitive Disengagement Syndrome (CDS): somnolencia diurna, pensamiento lento, 'estar en las nubes', letargia mental. Puede ser constructo separado.",detail:"Barkley (2013) propone CDS como dimensión independiente del TDAH. Se asocia con internalización (ansiedad, depresión) más que externalización. Responde menos a estimulantes."},{icon:"🧠",title:"Hipoactivación del Sistema de Alerta (Arousal)",desc:"El sistema reticular ascendente y el locus coeruleus generan menor activación cortical tónica. El cerebro está 'subdespierto', buscando estimulación o desconectándose.",detail:"EEG muestra mayor ratio theta/beta (ondas lentas) en TDAH-I. Esto refleja hipoactivación cortical crónica, especialmente en regiones frontales."},{icon:"💔",title:"Diagnóstico Tardío y Consecuencias Psicológicas",desc:"Diagnóstico promedio 3–5 años más tarde que TDAH-C. Sin hiperactividad, no 'molesta' en clase. Años de fracaso académico inexplicado generan baja autoestima, ansiedad y depresión secundarias.",detail:"Mujeres con TDAH-I diagnosticadas en promedio a los 36 años. Prevalencia de depresión comórbida 3x mayor que en TDAH-C por el efecto acumulativo de sentirse 'incapaz'."},{icon:"🔬",title:"Déficit en Red Atencional Default-Executive",desc:"La interfaz entre DMN (red de modo defecto) y red ejecutiva frontoparietal está más alterada que en TDAH-C. Mayor intrusión de DMN durante tareas.",detail:"fMRI muestra que TDAH-I tiene peor desacoplamiento DMN↔red de tarea que TDAH-C. Correlaciona con 'desconexiones' mentales y mind-wandering crónico."},{icon:"⚡",title:"Hiperfoco Paradójico",desc:"Capacidad de concentración intensa en tareas intrínsecamente motivantes (videojuegos, lectura, hobbies). No es 'buena atención' sino fallo en la flexibilidad atencional y desenganche.",detail:"El hiperfoco ocurre cuando la tarea activa suficiente dopamina mesolímbica para superar el umbral. No es voluntario ni controlable. Puede durar horas olvidando necesidades básicas."},{icon:"⚖️",title:"Sesgo de Género en Diagnóstico",desc:"TDAH-I tiene ratio H:M de 1.5:1 (vs 3:1 en TDAH-C). Muchas mujeres desarrollan estrategias de 'enmascaramiento' (masking) que agotan recursos cognitivos y causan burnout.",detail:"Mujeres con TDAH-I compensan con perfeccionismo, sobreesfuerzo y ansiedad anticipatoria. El colapso suele ocurrir en transiciones vitales (universidad, maternidad, menopausia)."}],regiones:[{icon:"🎛️",name:"Corteza Prefrontal Dorsolateral",role:"MEMORIA DE TRABAJO",roleColor:"#3498DB",desc:"Principal región afectada en TDAH-I. Sostiene información 'online' para manipulación mental. Su hipofunción explica los olvidos, desorganización y dificultad para seguir instrucciones complejas.",finding:"<strong>Hallazgos:</strong> Hipoactivación bilateral en tareas n-back. Menor volumen de materia gris prefrontal lateral. La atomoxetina aumenta selectivamente la activación dlCPF."},{icon:"🌊",name:"Locus Coeruleus (LC)",role:"ALERTA DEFICIENTE",roleColor:"#9B59B6",desc:"Fuente principal de noradrenalina cerebral. En TDAH-I su descarga tónica es reducida, generando hipoactivación cortical global. La descarga fásica (respuesta a novedad) puede estar preservada.",finding:"<strong>Hallazgos:</strong> Menor señal LC en neuromelanina-MRI. Variabilidad pupilar reducida (marcador indirecto de actividad LC). Guanfacina optimiza la función α2A postsináptica en CPF."},{icon:"🔴",name:"Red de Modo Defecto (DMN)",role:"INTRUSIÓN MÁXIMA",roleColor:"#E74C3C",desc:"En TDAH-I la DMN es especialmente intrusiva. Durante tareas cognitivas no se desactiva, generando mind-wandering, desconexiones y 'estar en las nubes'. Es el sustrato del soñar despierto.",finding:"<strong>Hallazgos fMRI:</strong> Peor anticorrelación DMN↔red de tarea en TDAH-I que en TDAH-C. Correlaciona directamente con severidad de inatención y síntomas CDS/SCT."},{icon:"🧩",name:"Red Frontoparietal (Ejecutiva)",role:"CONTROL ATENCIONAL",roleColor:"#E67E22",desc:"Red que dirige la atención, selecciona información relevante y suprime distractores. Conecta dlCPF con corteza parietal posterior. Hipoactiva en TDAH-I.",finding:"<strong>Hallazgos:</strong> Menor conectividad funcional frontoparietal. Activación reducida durante atención sostenida (CPT). Mejora con metilfenidato y atomoxetina."},{icon:"🌀",name:"Corteza Cingulada Posterior (CCP)",role:"NODO DMN",roleColor:"#2980B9",desc:"Hub central de la DMN. Su hiperactividad durante tareas contribuye a la intrusión atencional. Participa en pensamiento autorreferencial y 'rumiación atencional'.",finding:"<strong>Hallazgos:</strong> Mayor conectividad CCP↔mPFC (corteza prefrontal medial) en TDAH-I. Menor desactivación durante tareas externas que requieren atención focalizada."},{icon:"🌉",name:"Fascículo Longitudinal Superior",role:"AUTOPISTA LENTA",roleColor:"#27AE60",desc:"Principal tracto de sustancia blanca conectando frontal con parietal. Su menor integridad microestructural enlentece la comunicación de la red atencional dorsal.",finding:"<strong>Hallazgos DTI:</strong> Reducción significativa de FA (anisotropía fraccional) en FLS izquierdo. Correlaciona con rendimiento en tareas de atención sostenida."},{icon:"🔵",name:"Corteza Parietal Inferior Derecha",role:"REORIENTACIÓN",roleColor:"#3498DB",desc:"Parte de la red atencional ventral. Permite reorientar la atención hacia estímulos relevantes. En TDAH-I falla la detección de señales importantes en el ambiente.",finding:"<strong>Hallazgos:</strong> Hipoactivación en tareas de detección de targets infrecuentes. Lateralización derecha reducida de la red atencional ventral."},{icon:"⏰",name:"Cerebelo (Lóbulos VI-VII)",role:"AUTOMATIZACIÓN",roleColor:"#16A085",desc:"Los lóbulos VI-VII cerebelosos participan en automatización cognitiva y predicción temporal. Su disfunción dificulta que tareas aprendidas se vuelvan 'automáticas', requiriendo siempre esfuerzo consciente.",finding:"<strong>Hallazgos:</strong> Reducción de volumen en lóbulos VI-VII. Hipoactivación durante aprendizaje procedimental. Contribuye a la fatiga cognitiva crónica del TDAH-I."}],sintomas:{inat:["Dificultad extrema para iniciar tareas (parálisis de inicio / task initiation failure)","Pierde el hilo de lo que está haciendo o leyendo constantemente","Olvida citas, compromisos y tareas cotidianas a pesar de recordatorios","Desorganización crónica: escritorio caótico, archivos perdidos, plazos incumplidos","Necesita releer textos múltiples veces para retener información","Evita o pospone indefinidamente tareas que requieren esfuerzo mental sostenido","Comete errores por descuido en trabajo que domina perfectamente","Se distrae con pensamientos internos más que con estímulos externos","Hiperfoco paradójico: horas absorbido en temas de interés perdiendo noción del tiempo"],hiper:["Inquietud interna más que motora (sensación de 'zumbido mental')","Necesidad de estar haciendo algo con las manos (fidgeting sutil)","Dificultad para relajarse o 'apagar' la mente","Habla interna excesiva y acelerada","Cambio frecuente de posición cuando está sentado largo rato"],desreg:["Sensibilidad extrema al rechazo (RSD): dolor emocional intenso ante críticas reales o percibidas","Frustración desproporcionada cuando se interrumpe el hiperfoco","Abrumarse fácilmente ante múltiples demandas (overwhelm / colapso ejecutivo)","Autoduda crónica: '¿por qué no puedo hacer lo que otros hacen sin esfuerzo?'","Vergüenza y culpa acumulada por años de rendimiento 'por debajo del potencial'","Ansiedad anticipatoria ante tareas pendientes (doom scrolling emocional)","Perfeccionismo compensatorio que paraliza la acción"]},dsm_criteria_detail:[{n:"A1",text:"≥ 6 síntomas de inatención (≥ 5 en ≥17 años) presentes ≥ 6 meses, incongruentes con el nivel de desarrollo y con impacto directo negativo en actividades."},{n:"A2",text:"< 6 síntomas de hiperactividad-impulsividad. Pueden existir algunos, pero no alcanzan umbral clínico."},{n:"B",text:"Varios síntomas de inatención presentes ANTES de los 12 años (aunque el diagnóstico formal puede ser mucho más tardío, especialmente en mujeres)."},{n:"C",text:"Síntomas en ≥ 2 contextos. En TDAH-I puede manifestarse distinto: funciona en 1:1 pero falla en clase; funciona en temas de interés pero falla en rutinas."},{n:"D",text:"Interferencia clara en rendimiento académico, laboral o social. En TDAH-I el deterioro puede ser invisible: 'rinde pero con sobreesfuerzo insostenible'."},{n:"E",text:"No se explica por otro trastorno. Diagnóstico diferencial: depresión, ansiedad, trauma, hipotiroidismo, apnea del sueño."}],treatments:[{cat:"ESTIMULANTES EN TDAH-I",emoji:"⚡",items:[{name:"Metilfenidato — Liberación Prolongada",evidence:"A",evidColor:"#27AE60",indication:"INATENCIÓN · MEMORIA DE TRABAJO",mech:"Mismo mecanismo que en TDAH-C. En TDAH-I las dosis óptimas suelen ser menores. La formulación prolongada evita fluctuaciones que empeoran la inatención.",notes:"Dosis promedio 20–30% menor que en TDAH-C. Concerta o equivalente para cobertura horario escolar/laboral completo. Iniciar bajo, titular lento.",warning:"Mayor sensibilidad a efectos adversos emocionales (disforia, aplanamiento) en TDAH-I. Monitorear estado de ánimo cuidadosamente."},{name:"Lisdexanfetamina",evidence:"A",evidColor:"#27AE60",indication:"TDAH-I MODERADO-SEVERO",mech:"Puede ser superior a MPH en TDAH-I por su efecto adicional sobre liberación noradrenérgica. Duración extendida de 12–14h cubre jornada completa.",notes:"Algunos pacientes con TDAH-I responden mejor a anfetamínicos que a MPH. Probar si respuesta parcial a metilfenidato.",warning:"Mismas precauciones. Vigilar ansiedad y supresión de apetito."}]},{cat:"NO ESTIMULANTES — ESPECIALMENTE ÚTILES EN TDAH-I",emoji:"🎯",items:[{name:"Atomoxetina",evidence:"A",evidColor:"#27AE60",indication:"TDAH-I + ANSIEDAD · PRIMERA OPCIÓN NO ESTIMULANTE",mech:"Especialmente indicada en TDAH-I por su acción noradrenérgica preferente. Mejora alerta tónica, memoria de trabajo y reduce ansiedad concomitante.",notes:"Puede ser primera línea en TDAH-I con ansiedad comórbida significativa. Efecto en 4–6 semanas. No controlada: receta regular.",warning:"Mismas precauciones hepáticas. Titular gradualmente."},{name:"Viloxazina (Qelbree)",evidence:"A",evidColor:"#27AE60",indication:"TDAH-I · APROBADO FDA 2021",mech:"Inhibidor selectivo de recaptación de noradrenalina con actividad agonista 5-HT2C. Perfil único: mejora atención vía NA y tiene efecto ansiolítico/antidepresivo sutil.",notes:"Aprobado en niños ≥6 y adultos. No es sustancia controlada. Alternativa cuando atomoxetina no se tolera. Dosis: 200–600mg adultos.",warning:"Náuseas frecuentes al inicio. Puede aumentar PA levemente. Interacción con CYP1A2."}]},{cat:"INTERVENCIONES NO FARMACOLÓGICAS TDAH-I",emoji:"🧠",items:[{name:"Coaching TDAH Especializado",evidence:"B",evidColor:"#E67E22",indication:"ADULTOS · HABILIDADES ORGANIZATIVAS",mech:"Sesiones regulares con coach certificado TDAH. Foco en sistemas externos compensatorios: agendas, alarmas, rutinas, body doubling, accountability.",notes:"Especialmente eficaz en TDAH-I adulto donde el problema principal es organización y iniciación. Complementa (no reemplaza) farmacoterapia.",warning:null},{name:"Mindfulness Adaptado a TDAH",evidence:"B",evidColor:"#E67E22",indication:"INATENCIÓN · REGULACIÓN EMOCIONAL",mech:"Programa MAPs (Mindful Awareness Practices — Zylowska, UCLA). 8 sesiones adaptadas con meditaciones cortas (3–5 min), ejercicios de anclaje sensorial.",notes:"Mejora metacognición atencional: 'notar que me desconecté'. Reduce autocrítica. Eficaz combinado con medicación. No requiere meditaciones largas.",warning:null},{name:"Sistemas Externos de Apoyo Ejecutivo",evidence:"A",evidColor:"#27AE60",indication:"TODAS LAS EDADES · COMPENSACIÓN",mech:"Andamiaje cognitivo externo: alarmas múltiples, apps de gestión (Todoist, Notion), timers visuales, listas físicas, body doubling (trabajar acompañado), Pomodoro adaptado.",notes:"El cerebro TDAH necesita externalizar las funciones ejecutivas que no puede automatizar internamente. No es 'muleta': es prótesis cognitiva legítima.",warning:null},{name:"Ejercicio Aeróbico Matutino",evidence:"A",evidColor:"#27AE60",indication:"ACTIVACIÓN CORTICAL · ALERTA",mech:"Especialmente útil en TDAH-I por su efecto de activación cortical. 20–30 min de ejercicio aeróbico matutino aumenta alerta tónica durante 60–90 min posteriores.",notes:"Funciona como 'metilfenidato conductual'. La combinación ejercicio matutino + medicación es superior a cualquiera sola.",warning:null}]}]},
+{id:2,name:"TDAH Predominio Hiperactivo-Impulsivo",abbr:"TDAH-HI",sub:"Hiperactividad + Impulsividad sin Inatención Significativa",icon:"⚡",color:"#E74C3C",colorGlow:"rgba(231,76,60,0.25)",colorLight:"rgba(231,76,60,0.15)",kpi:{prev:"1–2%",her:"76%",age:"3–6",per:"40%"},phases:["HIPERACTIVIDAD","IMPULSIVIDAD","DESREGULACIÓN","BÚSQUEDA RIESGO"],phaseColors:["#E74C3C","#F39C12","#9B59B6","#E67E22"],dsm_criteria:"≥ 6 síntomas de hiperactividad-impulsividad (≥ 5 en adultos ≥17 años) pero < 6 de inatención. Presente antes de los 12 años. Es la presentación menos frecuente y muchos evolucionan a TDAH-C.",description:"Presentación menos común (5–10% de TDAH). Predomina la hiperactividad motora, la impulsividad verbal y conductual, y la búsqueda de estimulación. Más frecuente en preescolares y niños pequeños. Muchos evolucionan a TDAH-C al agregarse inatención con la demanda académica creciente.",causas:[{icon:"🧬",title:"Mayor Carga de Variantes Dopaminérgicas Estriatales",desc:"Mayor frecuencia de variantes en DRD4 (alelo 7R) y DAT1 (alelo 10R) que en TDAH-I. La hiperactividad motora se asocia más directamente con disfunción dopaminérgica estriatal.",detail:"El alelo DRD4-7R produce un receptor D4 con menor afinidad por dopamina, requiriendo más estimulación para activarse. Prevalencia 2x mayor en TDAH-HI que en controles."},{icon:"⚗️",title:"Hiperactividad del Sistema Motor Dopaminérgico",desc:"Circuito motor (putamen-GPe-tálamo-corteza motora) hiperexcitable. El putamen muestra mayor densidad de DAT y menor dopamina tónica basal, generando inquietud motora compensatoria.",detail:"La hiperactividad puede ser una forma de autoestimulación: el movimiento aumenta la dopamina suficiente para mantener un nivel mínimo de activación cortical."},{icon:"🔥",title:"Inmadurez del Sistema Inhibitorio",desc:"La corteza prefrontal orbital y la corteza cingulada anterior — responsables de la inhibición conductual — son las últimas regiones en madurar y las más afectadas en TDAH-HI.",detail:"Modelo de Barkley: TDAH-HI es fundamentalmente un trastorno de la inhibición conductual, del cual derivan secundariamente los déficits ejecutivos."},{icon:"🕐",title:"Sensibilización Temprana del Sistema de Recompensa",desc:"El sistema de recompensa está hiperreactivo ante estímulos inmediatos pero hipoactivo ante recompensas diferidas. Esto genera búsqueda constante de novedad y estimulación.",detail:"Mayor activación del NAcc ante recompensas inmediatas que en TDAH-I. Correlaciona con conductas de riesgo en adolescencia: accidentes, experimentación con sustancias."},{icon:"🌍",title:"Factores Perinatales con Mayor Peso",desc:"Exposición prenatal a sustancias (tabaco, alcohol), prematuridad extrema y adversidad temprana tienen mayor asociación con TDAH-HI que con TDAH-I.",detail:"El subtipo HI tiene mayor asociación con disrupción endocrina prenatal. Bisfenol A y ftalatos asociados con hiperactividad en estudios longitudinales."},{icon:"💊",title:"Evolución Natural del Subtipo",desc:"50–70% de TDAH-HI preescolar evoluciona a TDAH-C en edad escolar. La hiperactividad motora disminuye en adolescencia pero la impulsividad y desregulación pueden persistir.",detail:"La 'remisión' aparente de hiperactividad en adultos es parcial: se internaliza como inquietud mental, necesidad de estar ocupado y dificultad para relajarse."},{icon:"⚖️",title:"Mayor Riesgo de Comorbilidad Externalizante",desc:"TDAH-HI se asocia más con trastorno oposicionista desafiante (TOD: 60%), trastorno de conducta (TC: 20–30%), y abuso de sustancias temprano.",detail:"La impulsividad conductual es el predictor más fuerte de comorbilidad externalizante. El tratamiento temprano con estimulantes reduce el riesgo de abuso de sustancias posterior."},{icon:"🧠",title:"Déficit en Señal de Parada Motora (SSRT)",desc:"El tiempo de reacción para inhibir una respuesta (Stop-Signal Reaction Time) está prolongado. Es el marcador neuropsicológico más específico de TDAH-HI.",detail:"SSRT prolongado refleja falla en el circuito CPF inferior derecha → núcleo subtalámico → ganglios basales. Normaliza con metilfenidato."}],regiones:[{icon:"🔄",name:"Putamen y Circuito Motor",role:"MOTOR HIPERACTIVO",roleColor:"#E74C3C",desc:"El putamen programa y ejecuta secuencias motoras. Su hiperexcitabilidad, combinada con menor control prefrontal descendente, genera la inquietud motora constante del TDAH-HI.",finding:"<strong>Hallazgos:</strong> Volumen del putamen reducido bilateralmente. Mayor densidad DAT. Hiperactivación en tareas motoras simples. Normaliza parcialmente con estimulantes."},{icon:"🎛️",name:"CPF Orbital e Inferior Derecha",role:"FRENO ROTO",roleColor:"#E67E22",desc:"La CPF orbitofrontal inhibe respuestas inapropiadas. La CPF inferior derecha (giro frontal inferior) es crítica para la señal de 'stop'. Ambas hipofuncionan en TDAH-HI.",finding:"<strong>Hallazgos:</strong> Menor grosor cortical OFC. Hipoactivación del giro frontal inferior derecho en tareas Stop-Signal. Es la región más específica del déficit inhibitorio."},{icon:"🌀",name:"Núcleo Subtalámico (NST)",role:"COMPUERTA MOTORA",roleColor:"#9B59B6",desc:"Parte de la 'vía hiperdirecta' de inhibición: CPF → NST → GPi. La señal de emergencia para detener una acción viaja por aquí. En TDAH-HI esta vía es lenta o débil.",finding:"<strong>Hallazgos:</strong> Menor conectividad funcional CPF inferior → NST. Latencia prolongada de la señal inhibitoria. Estimulación cerebral profunda del NST suprime impulsividad (experimental)."},{icon:"🌊",name:"Corteza Cingulada Anterior (CCA)",role:"IMPULSIVIDAD COGNITIVA",roleColor:"#F39C12",desc:"Monitor de conflictos y errores. En TDAH-HI no detecta adecuadamente que una respuesta es prematura o incorrecta, permitiendo que los impulsos se ejecuten sin filtro.",finding:"<strong>Hallazgos:</strong> Menor activación en ERN (Error-Related Negativity). Menor ajuste post-error. El individuo no 'siente' el error y no corrige la estrategia."},{icon:"🌉",name:"Amígdala y Circuito Emocional",role:"REACTIVIDAD EMOCIONAL",roleColor:"#E74C3C",desc:"La amígdala está hiperreactiva con menor regulación prefrontal descendente. Explica las explosiones emocionales, la baja tolerancia a la frustración y la impulsividad emocional.",finding:"<strong>Hallazgos:</strong> Volumen amigdalino reducido en TDAH pediátrico. Hiperactivación ante estímulos emocionales negativos. Menor conectividad amígdala↔vmCPF."},{icon:"🧩",name:"Cerebelo (Vermis Anterior)",role:"TEMPORIZACIÓN MOTORA",roleColor:"#27AE60",desc:"El vermis anterior coordina la temporización de movimientos y la secuencia motora. Su disfunción contribuye a la torpeza motora y a la dificultad para modular la intensidad del movimiento.",finding:"<strong>Hallazgos:</strong> Reducción del vermis anterior. Menor sincronización sensoriomotora. Contribuye a la 'torpeza con energía' característica del TDAH-HI."},{icon:"⚡",name:"Sistema Reticular Activador",role:"SOBREACTIVACIÓN",roleColor:"#E74C3C",desc:"A diferencia de TDAH-I (hipoactivación), TDAH-HI puede mostrar sobreactivación del sistema reticular ascendente, generando un estado de alerta excesiva que se expresa como inquietud.",finding:"<strong>Hallazgos:</strong> Menor ratio theta/beta que TDAH-I en EEG. Conductancia galvánica elevada. Niveles basales de cortisol más altos que TDAH-I."},{icon:"🔵",name:"Ínsula Anterior",role:"URGENCIA",roleColor:"#2980B9",desc:"La ínsula integra señales corporales con urgencia de acción. Su hiperactivación en TDAH-HI genera la sensación de que 'todo es urgente' y la dificultad para priorizar.",finding:"<strong>Hallazgos:</strong> Mayor activación insular ante estímulos de recompensa inmediata. Conectividad ínsula↔estriado ventral aumentada. Correlaciona con impulsividad en cuestionarios."}],sintomas:{inat:["Puede mantener atención en contextos estimulantes o novedosos","Inatención se manifiesta principalmente por aburrimiento, no por déficit primario","Dificultad para atender a tareas monótonas o repetitivas","La inatención puede aparecer secundariamente con la edad (evolución a TDAH-C)"],hiper:["Hiperactividad motora extrema: no puede permanecer quieto más de minutos","Trepa, salta, corre en contextos inapropiados (preescolares: 'huracán')","Habla constantemente, interrumpe, no espera turnos","Inquietud constante de manos, pies, cuerpo entero","Incapacidad de participar en actividades sedentarias o silenciosas","En adultos: necesidad compulsiva de estar ocupado, multitasking excesivo","Sensación interna de 'motor encendido' que no se apaga","Cambia de actividad constantemente buscando estimulación","Conducción vehicular agresiva o imprudente"],desreg:["Explosiones de ira o frustración con recuperación rápida (tormentas emocionales)","Impulsividad verbal: dice lo que piensa sin filtro, comentarios inapropiados","Toma decisiones precipitadas sin evaluar consecuencias","Dificultad para esperar: interrumpe filas, conversaciones, procesos","Mayor propensión a accidentes por conducta imprudente","Búsqueda de sensaciones: deportes extremos, conductas de riesgo","Gasto impulsivo e imprudente","Impaciencia extrema ante procesos lentos o burocracia"]},dsm_criteria_detail:[{n:"A1",text:"< 6 síntomas de inatención. Puede haber algunos, pero no alcanzan umbral clínico para la presentación inatenta."},{n:"A2",text:"≥ 6 síntomas de hiperactividad-impulsividad (≥ 5 en ≥17 años) presentes ≥ 6 meses. Incluye inquietud, levantarse, correr/trepar, hablar excesivamente, responder precipitadamente, no esperar turno, interrumpir."},{n:"B",text:"Varios síntomas presentes antes de los 12 años. En TDAH-HI suelen ser evidentes desde los 3–4 años."},{n:"C",text:"Presencia en ≥ 2 contextos. En TDAH-HI suele ser omnipresente y más evidente que en TDAH-I."},{n:"D",text:"Deterioro funcional claro: problemas disciplinarios, accidentes, conflictos interpersonales, dificultades laborales por impulsividad."},{n:"E",text:"Diferencial: manía pediátrica, trastorno de conducta, ansiedad severa, trauma, hipertiroidismo, efectos de sustancias."}],treatments:[{cat:"ESTIMULANTES — ALTA EFICACIA EN TDAH-HI",emoji:"⚡",items:[{name:"Metilfenidato — Todas las Formulaciones",evidence:"A",evidColor:"#27AE60",indication:"HIPERACTIVIDAD · IMPULSIVIDAD · INHIBICIÓN",mech:"Eficacia particularmente alta en TDAH-HI: normaliza la señal de inhibición (SSRT) y reduce hiperactividad motora en >80% de los casos.",notes:"Tamaño de efecto mayor en TDAH-HI que en TDAH-I (d=0.9 vs d=0.7). Formulación prolongada preferida para cobertura continua. La respuesta suele ser dramática y visible.",warning:"En TDAH-HI puro la respuesta es tan buena que la falta de respuesta debe hacer replantear el diagnóstico."},{name:"Anfetaminas (LDX / Sales Mixtas)",evidence:"A",evidColor:"#27AE60",indication:"TDAH-HI SEVERO · FALLO A MPH",mech:"Mayor liberación directa de dopamina vesicular. Puede ser superior en impulsividad severa y desregulación emocional asociada.",notes:"Lisdexanfetamina preferida por menor potencial de abuso y duración extendida. Adderall XR como alternativa.",warning:"Mayor riesgo de reducción de apetito y rebound. Monitoreo cardiovascular especialmente en deportistas."}]},{cat:"NO ESTIMULANTES — COMPLEMENTARIOS",emoji:"🎯",items:[{name:"Guanfacina de Liberación Prolongada",evidence:"A",evidColor:"#27AE60",indication:"HIPERACTIVIDAD · AGRESIVIDAD · TICS · DESREGULACIÓN",mech:"Especialmente eficaz en TDAH-HI para hiperactividad e impulsividad. Actúa vía α2A en CPF. Puede combinarse con estimulantes.",notes:"Primera opción no estimulante en TDAH-HI. Superior a atomoxetina para reducir hiperactividad motora. Intuniv 1–7mg.",warning:"Somnolencia, hipotensión. No suspender bruscamente."},{name:"Clonidina de Liberación Prolongada",evidence:"B",evidColor:"#E67E22",indication:"TDAH-HI + INSOMNIO · TICS · AGRESIVIDAD",mech:"Agonista α2 menos selectivo que guanfacina. Efecto sedante útil para insomnio y sobreactivación. Puede combinarse con estimulantes para cubrir tarde-noche.",notes:"Kapvay 0.1–0.4mg. Útil como addon vespertino cuando el estimulante ha pasado su efecto. Reduce rebound.",warning:"Mayor sedación que guanfacina. Hipotensión. Riesgo de rebote hipertensivo si suspensión brusca."}]},{cat:"INTERVENCIONES NO FARMACOLÓGICAS TDAH-HI",emoji:"🧠",items:[{name:"Manejo Conductual en Aula (DRC)",evidence:"A",evidColor:"#27AE60",indication:"NIÑOS · ESCOLAR",mech:"Daily Report Card: objetivos conductuales diarios (permanecer sentado, levantar mano, completar trabajo) con recompensas contingentes en casa.",notes:"MTA Study: manejo conductual intensivo equivale a medicación baja en TDAH-HI leve. Combinación MED+CONDUCTUAL superior a ambos solos.",warning:null},{name:"Ejercicio Físico de Alta Intensidad",evidence:"A",evidColor:"#27AE60",indication:"DESCARGA MOTORA · REGULACIÓN",mech:"Artes marciales, natación, deportes de equipo canalizan la hiperactividad. El ejercicio intenso descarga dopamina y noradrenalina, reduciendo inquietud post-ejercicio.",notes:"Artes marciales especialmente recomendadas: requieren inhibición, secuenciación y respeto de reglas. Reducción de hiperactividad en 40–50% post-sesión.",warning:null},{name:"Entrenamiento en Habilidades Sociales",evidence:"B",evidColor:"#E67E22",indication:"IMPULSIVIDAD SOCIAL · RECHAZO PARES",mech:"Grupos de 6–8 niños: turnos de habla, reconocimiento emocional, estrategias de espera, reparación social tras conflictos.",notes:"El rechazo por pares es la consecuencia social más dañina del TDAH-HI. Entrenamiento temprano previene aislamiento y baja autoestima.",warning:null},{name:"Terapia Dialéctico-Conductual Adaptada",evidence:"B",evidColor:"#E67E22",indication:"ADULTOS · DESREGULACIÓN EMOCIONAL",mech:"Habilidades de tolerancia al malestar, regulación emocional, mindfulness y efectividad interpersonal adaptadas al perfil TDAH-HI.",notes:"Especialmente útil en adultos TDAH-HI con impulsividad emocional y verbal que genera conflictos interpersonales y laborales.",warning:null}]}]}];
+
+function buildStudyCards(d) {
+  const cards = [];
+  d.causas.forEach(c => cards.push({ q: `¿Cuál es el rol de "${c.title}" en el ${d.abbr}?`, a: c.desc + ' — ' + c.detail }));
+  d.regiones.forEach(r => cards.push({ q: `¿Qué le pasa a la ${r.name} en el ${d.abbr}?`, a: r.desc + ' ' + r.finding.replace(/<[^>]+>/g,'') }));
+  d.sintomas.inat.slice(0,3).forEach(s => cards.push({ q: `Síntoma de inatención en ${d.abbr}:`, a: s }));
+  d.sintomas.hiper.slice(0,3).forEach(s => cards.push({ q: `Síntoma de hiperactividad/impulsividad en ${d.abbr}:`, a: s }));
+  d.treatments.forEach(g => g.items.slice(0,2).forEach(t => cards.push({ q: `¿Cuál es el mecanismo de acción de ${t.name}?`, a: t.mech + (t.notes?' | Nota: '+t.notes:'') })));
+  d.dsm_criteria_detail.forEach(c => cards.push({ q: `Criterio DSM-5-TR ${c.n} para ${d.abbr}:`, a: c.text }));
+  return cards;
+}
+
+let current = 0, dropdownOpen = false, studyActive = false;
+let studyCards = [], studyIndex = 0, studyRevealed = false;
+
+function doSearch(query) {
+  query = query.trim().toLowerCase();
+  const noResults = document.getElementById('noResults');
+  document.querySelectorAll('.search-highlight').forEach(el => { el.style.outline = ''; el.style.boxShadow = ''; el.classList.remove('search-highlight'); });
+  if (!query) {
+    document.querySelectorAll('.brain-item,.cause-item,.sym-item,.treat-card,.card,.neuro-item,.criteria-item').forEach(el => el.style.display = '');
+    noResults.style.display = 'none';
+    document.querySelectorAll('.tab-panel').forEach(p => { p.style.display = ''; p.classList.remove('active'); });
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    const tab = currentTab || 'causas';
+    const panel = document.getElementById('tab-' + tab); if (panel) panel.classList.add('active');
+    const navBtn = document.getElementById('nav-' + tab); if (navBtn) navBtn.classList.add('active');
+    return;
+  }
+  let found = 0;
+  document.querySelectorAll('.tab-panel').forEach(p => { p.style.display = 'block'; p.classList.add('active'); });
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.add('active'));
+  document.querySelectorAll('.brain-item,.cause-item,.sym-item,.treat-card,.card,.neuro-item,.criteria-item').forEach(el => {
+    if (el.innerText.toLowerCase().includes(query)) { el.style.display = ''; el.classList.add('search-highlight'); el.style.outline = '2px solid var(--active)'; el.style.boxShadow = '0 0 12px var(--active-glow)'; found++; }
+    else el.style.display = 'none';
+  });
+  noResults.style.display = found === 0 ? 'block' : 'none';
+  if (found === 0) document.getElementById('noResultsTerm').textContent = query;
+  if (found > 0) { const first = document.querySelector('.search-highlight'); if (first) setTimeout(() => first.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150); }
+}
+
+function clearSearch() {
+  document.getElementById('searchBox').value = '';
+  document.querySelectorAll('.search-highlight').forEach(el => { el.style.outline = ''; el.style.boxShadow = ''; el.classList.remove('search-highlight'); });
+  document.querySelectorAll('.brain-item,.cause-item,.sym-item,.treat-card,.card,.neuro-item,.criteria-item').forEach(el => el.style.display = '');
+  document.getElementById('noResults').style.display = 'none';
+  document.querySelectorAll('.tab-panel').forEach(p => { p.style.display = ''; p.classList.remove('active'); });
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const tab = currentTab || 'causas';
+  const panel = document.getElementById('tab-' + tab); if (panel) panel.classList.add('active');
+  const navBtn = document.getElementById('nav-' + tab); if (navBtn) navBtn.classList.add('active');
+  var c = document.getElementById('content'); if(c) c.scrollTop = 0;
+}
+
+function toggleStudyMode() {
+  studyActive = !studyActive;
+  const card = document.getElementById('studyCard');
+  if (studyActive) { studyCards = buildStudyCards(diseases[current]).sort(() => Math.random() - 0.5); studyIndex = 0; studyRevealed = false; card.classList.add('active'); renderStudyCard(); document.querySelector('.tool-btn.primary').textContent = '✕ Cerrar Estudio'; }
+  else { card.classList.remove('active'); document.querySelector('.tool-btn.primary').textContent = '📖 Modo Estudio'; }
+}
+
+function renderStudyCard() {
+  const card = document.getElementById('studyCard'), sc = studyCards[studyIndex];
+  card.innerHTML = `<div class="card-label">MODO ESTUDIO · FLASHCARD</div><div class="study-counter">${studyIndex + 1} / ${studyCards.length}</div><div class="study-question">${sc.q}</div>${studyRevealed ? `<div class="study-reveal">${sc.a}</div>` : `<div style="text-align:center;padding:12px 0;color:var(--muted);font-style:italic;font-size:13px;">Toca "Revelar" para ver la respuesta</div>`}<div class="study-nav"><button onclick="studyPrev()">◀ Anterior</button>${!studyRevealed ? `<button class="next-btn" onclick="studyReveal()">👁 Revelar</button>` : `<button class="next-btn" onclick="studyNext()">Siguiente ▶</button>`}</div>`;
+}
+function studyReveal() { studyRevealed = true; renderStudyCard(); }
+function studyNext() { studyIndex = (studyIndex + 1) % studyCards.length; studyRevealed = false; renderStudyCard(); }
+function studyPrev() { studyIndex = (studyIndex - 1 + studyCards.length) % studyCards.length; studyRevealed = false; renderStudyCard(); }
+
+function setTheme(d) { document.documentElement.style.setProperty('--active', d.color); document.documentElement.style.setProperty('--active-glow', d.colorGlow); }
+function toggleDropdown() { dropdownOpen = !dropdownOpen; document.getElementById('dropdown').classList.toggle('open', dropdownOpen); document.getElementById('sel-arrow').textContent = dropdownOpen ? '▲' : '▼'; }
+
+function buildDropdown() {
+  document.getElementById('dropdown').innerHTML = diseases.map((d,i) =>
+    `<div class="dd-item" onclick="selectDisease(${i})" style="border-left-color:${d.color};${i===current?'background:#1A1A35;':''}">
+      <span style="font-size:26px">${d.icon}</span>
+      <div><div class="dd-item-name">${d.name}</div><div class="dd-item-sub">${d.abbr} · ${d.kpi.prev}</div><div class="dd-item-desc">${d.sub}</div></div></div>`).join('');
+}
+
+function selectDisease(idx) {
+  current = idx; dropdownOpen = false;
+  document.getElementById('dropdown').classList.remove('open');
+  document.getElementById('sel-arrow').textContent = '▼';
+  if (studyActive) { studyActive = false; document.getElementById('studyCard').classList.remove('active'); document.querySelector('.tool-btn.primary').textContent = '📖 Modo Estudio'; }
+  clearSearch(); renderAll(); buildDropdown();
+  switchTab('causas', document.getElementById('nav-causas'));
+}
+
+function renderAll() {
+  const d = diseases[current]; setTheme(d);
+  document.getElementById('sel-icon').textContent = d.icon;
+  document.getElementById('sel-name').textContent = d.name;
+  document.getElementById('sel-sub').textContent = `${d.abbr} · ${d.sub}`;
+  document.getElementById('kpi-prev').textContent = d.kpi.prev;
+  document.getElementById('kpi-her').textContent = d.kpi.her;
+  document.getElementById('kpi-age').textContent = d.kpi.age;
+  document.getElementById('kpi-per').textContent = d.kpi.per;
+  document.getElementById('phase-bar').innerHTML = d.phases.map((p,i) =>
+    `<span class="phase-chip" style="background:${d.phaseColors[i]}22;color:${d.phaseColors[i]};border-color:${d.phaseColors[i]}44">${p}</span>`).join('');
+  renderCausas(d); renderCerebro(d); renderSintomas(d); renderTratamiento(d);
+}
+
+function renderCausas(d) {
+  document.getElementById('causas-content').innerHTML = `
+    <div class="card"><div class="card-label">DESCRIPCIÓN CLÍNICA · ${d.abbr}</div><p>${d.description}</p>
+    <div class="section-heading">CRITERIO DIAGNÓSTICO CLAVE (DSM-5-TR)</div>
+    <p style="font-style:italic;font-size:13px;">${d.dsm_criteria}</p></div>
+    <div class="card"><div class="card-label">ETIOLOGÍA MULTIFACTORIAL — 8 DIMENSIONES</div>
+    ${d.causas.map(c=>`<div class="cause-item" style="border-left-color:${d.color}"><span class="cause-icon">${c.icon}</span><div><div class="cause-title">${c.title}</div><div class="cause-desc">${c.desc}</div><div class="cause-detail">📌 ${c.detail}</div></div></div>`).join('')}</div>
+    <div class="card"><div class="card-label">NEUROTRANSMISORES CLAVE</div>
+    <div class="neuro-grid">${[
+      {mol:"⚡",name:"Dopamina",role:"Atención, recompensa, motivación",alt:"↓ CPF y estriado",altColor:"#E74C3C"},
+      {mol:"🔋",name:"Noradrenalina",role:"Alerta, señal/ruido, vigilancia",alt:"↓ tónica en CPF",altColor:"#E67E22"},
+      {mol:"🌊",name:"Serotonina",role:"Impulsividad, regulación emocional",alt:"↓ en impulsividad",altColor:"#3498DB"},
+      {mol:"🛡️",name:"GABA",role:"Inhibición, freno conductual",alt:"↓ circuitos inhibitorios",altColor:"#27AE60"},
+      {mol:"⚙️",name:"Glutamato",role:"Excitación, aprendizaje, plasticidad",alt:"Desbalance E/I",altColor:"#9B59B6"},
+      {mol:"🏃",name:"BDNF",role:"Neurotrofismo, plasticidad sináptica",alt:"↓ sin ejercicio/tratamiento",altColor:"#E74C3C"}
+    ].map(n=>`<div class="neuro-item"><div class="neuro-molecule">${n.mol}</div><div class="neuro-name">${n.name}</div><div class="neuro-role">${n.role}</div><span class="neuro-alteration" style="background:${n.altColor}22;color:${n.altColor}">${n.alt}</span></div>`).join('')}</div></div>
+    <div class="card"><div class="card-label">CRITERIOS DSM-5-TR — DETALLE</div>
+    ${d.dsm_criteria_detail.map(c=>`<div class="criteria-item"><span class="criteria-num">${c.n}</span><span class="criteria-text">${c.text}</span></div>`).join('')}</div>`;
+}
+
+function renderCerebro(d) {
+  document.getElementById('cerebro-content').innerHTML = `
+    <div class="card"><div class="card-label">NEUROANATOMÍA FUNCIONAL — 8 REGIONES</div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">Hallazgos de neuroimagen estructural (RMN, DTI) y funcional (fMRI, PET, EEG) en ${d.abbr}</p></div>
+    ${d.regiones.map(r=>`<div class="brain-item"><div class="brain-header"><span class="brain-icon">${r.icon}</span><div><span class="brain-name">${r.name}</span><span class="brain-role" style="background:${r.roleColor}22;color:${r.roleColor}">${r.role}</span></div></div><div class="brain-desc">${r.desc}</div><div class="brain-finding">${r.finding}</div></div>`).join('')}
+    <div class="card"><div class="card-label">COMPARATIVA SUBTIPOS TDAH</div>
+    <div style="overflow-x:auto;"><table class="compare-table">
+      <thead><tr><th class="row-label">DIMENSIÓN</th><th style="color:#E67E22">TDAH-C</th><th style="color:#3498DB">TDAH-I</th><th style="color:#E74C3C">TDAH-HI</th></tr></thead>
+      <tbody>${[
+        ["CPF dorsolateral","Hipoactiva","Muy hipoactiva","Menos afectada"],
+        ["Estriado/Caudado","↓ Volumen bilateral","↓ Leve","↓ Moderado"],
+        ["NAcc/Recompensa","↓ Ante recompensa diferida","↓↓ Motivación","↑ Ante recompensa inmediata"],
+        ["DMN (intrusión)","Moderada","Máxima","Menor"],
+        ["Inhibición (SSRT)","Prolongado","Normal/leve","Muy prolongado"],
+        ["Cerebelo","↓ Vermis posterior","↓ Lóbulos VI-VII","↓ Vermis anterior"]
+      ].map(r=>`<tr><td class="row-label">${r[0]}</td><td style="color:#E67E22;font-weight:600">${r[1]}</td><td style="color:#3498DB;font-weight:600">${r[2]}</td><td style="color:#E74C3C;font-weight:600">${r[3]}</td></tr>`).join('')}
+      </tbody></table></div></div>`;
+}
+
+function renderSintomas(d) {
+  const s = d.sintomas;
+  const inatTitle = current===1 ? "INATENCIÓN (DOMINIO PRINCIPAL)" : current===2 ? "INATENCIÓN (SECUNDARIA)" : "INATENCIÓN";
+  const hiperTitle = current===2 ? "HIPERACTIVIDAD-IMPULSIVIDAD (DOMINIO PRINCIPAL)" : current===1 ? "HIPERACTIVIDAD (RESIDUAL)" : "HIPERACTIVIDAD-IMPULSIVIDAD";
+  const sections = [
+    {title:inatTitle,color:"#3498DB",bg:"rgba(52,152,219,0.1)",items:s.inat},
+    {title:hiperTitle,color:"#E74C3C",bg:"rgba(231,76,60,0.1)",items:s.hiper},
+    {title:"DESREGULACIÓN EMOCIONAL",color:"#9B59B6",bg:"rgba(155,89,182,0.1)",items:s.desreg}
+  ];
+  document.getElementById('sintomas-content').innerHTML = `
+    <div class="card"><div class="card-label">PERFIL CLÍNICO</div><div style="overflow-x:auto;">
+    <table class="compare-table"><tbody>
+    ${current===0
+      ? `<tr><td class="row-label">Presentación</td><td>Combinada: inatención + hiperactividad</td></tr><tr><td class="row-label">Prevalencia</td><td>5–7% niños / 2.5–4% adultos</td></tr><tr><td class="row-label">Ratio H:M</td><td>3:1 (niños) / 1.5:1 (adultos)</td></tr><tr><td class="row-label">Diagnóstico habitual</td><td>6–12 años</td></tr><tr><td class="row-label">Persistencia adulta</td><td>~60% (síntomas) / ~40% (diagnóstico completo)</td></tr>`
+      : current===1
+      ? `<tr><td class="row-label">Presentación</td><td>Inatenta predominante (sin hiperactividad significativa)</td></tr><tr><td class="row-label">Prevalencia</td><td>2–3% (infradiagnosticado)</td></tr><tr><td class="row-label">Ratio H:M</td><td>1.5:1 (mayor proporción de mujeres)</td></tr><tr><td class="row-label">Diagnóstico habitual</td><td>9–14 años (tardío, especialmente mujeres)</td></tr><tr><td class="row-label">Persistencia adulta</td><td>~65% (mayor que TDAH-C)</td></tr>`
+      : `<tr><td class="row-label">Presentación</td><td>Hiperactiva-impulsiva predominante</td></tr><tr><td class="row-label">Prevalencia</td><td>1–2% (menos frecuente)</td></tr><tr><td class="row-label">Ratio H:M</td><td>4:1 (más niños varones)</td></tr><tr><td class="row-label">Diagnóstico habitual</td><td>3–6 años (temprano)</td></tr><tr><td class="row-label">Evolución</td><td>50–70% evoluciona a TDAH-C</td></tr>`}
+    </tbody></table></div></div>
+    ${sections.map(sec=>`<div class="sym-section"><div class="sym-section-title" style="background:${sec.bg};color:${sec.color}">${sec.title}</div>${sec.items.map(item=>`<div class="sym-item" style="border-left-color:${sec.color}"><div class="sym-bullet" style="background:${sec.color}"></div><span class="sym-text">${item}</span></div>`).join('')}</div>`).join('')}
+    <div class="card"><div class="card-label">DÉFICITS EJECUTIVOS TRANSVERSALES</div>
+    ${["Memoria de trabajo: retener y manipular información 'online'","Inhibición: frenar respuestas automáticas inapropiadas","Flexibilidad cognitiva: cambiar entre tareas o perspectivas","Planificación: secuenciar pasos hacia una meta","Organización: estructurar materiales, tiempo y espacio","Monitoreo: supervisar el propio rendimiento y corregir errores","Estimación temporal: percibir y manejar el paso del tiempo","Regulación del esfuerzo: mantener esfuerzo en tareas no motivantes"].map(item=>`<div class="sym-item" style="border-left-color:${d.color}"><div class="sym-bullet" style="background:${d.color}"></div><span class="sym-text">${item}</span></div>`).join('')}</div>`;
+}
+
+function renderTratamiento(d) {
+  document.getElementById('tratamiento-content').innerHTML = `
+    <div class="card"><div class="card-label">PRINCIPIOS GENERALES</div>
+    ${["Tratamiento multimodal: farmacología + intervenciones conductuales + adaptaciones ambientales","Estimulantes son primera línea en ≥6 años (NICE, AAP, CADDRA). Entrenamiento parental primera línea en <6 años","No causa adicción: tratamiento con estimulantes REDUCE riesgo de abuso de sustancias posterior en 50%","Monitoreo periódico: FC, PA, peso, talla, sueño, apetito, estado de ánimo","El TDAH es crónico: la mayoría necesita tratamiento continuo, no 'vacaciones de medicación' arbitrarias"].map(item=>`
+    <div class="cause-item" style="border-left-color:${d.color};padding:10px 12px;"><span style="font-size:16px;flex-shrink:0;">✓</span><span style="font-size:13px;color:var(--text2);line-height:1.5;">${item}</span></div>`).join('')}</div>
+    ${d.treatments.map(group=>`<div style="margin:18px 0 6px;font-size:9px;font-family:monospace;letter-spacing:3px;color:var(--muted);">${group.emoji} ${group.cat}</div>
+    ${group.items.map(t=>`<div class="treat-card"><div class="treat-card-header"><div><div class="treat-category">${t.indication}</div><div class="treat-name">${t.name}</div></div><span class="evidence-pill" style="background:${t.evidColor}">${t.evidence}</span></div><div class="treat-body"><span class="treat-emoji">${group.emoji}</span><div><div class="treat-mech">${t.mech}</div></div></div><div class="treat-notes" style="border-left-color:${d.color};background:${d.colorLight}">📋 ${t.notes}</div>${t.warning?`<div class="treat-warning">⚠️ ${t.warning}</div>`:''}</div>`).join('')}`).join('')}
+    <div class="card"><div class="card-label">COMORBILIDADES FRECUENTES</div>
+    ${["Trastorno de ansiedad (30–40%): atomoxetina o guanfacina preferidas; ISRS addon si necesario","Trastorno oposicionista desafiante (40–60%): entrenamiento parental + guanfacina","Trastorno del aprendizaje (20–30%): evaluación psicopedagógica obligatoria","Depresión (15–20%): puede ser secundaria al TDAH no tratado; tratar TDAH primero","Trastorno del espectro autista (15–25%): diagnóstico dual frecuente desde DSM-5","Abuso de sustancias (25% adultos): estimulantes reducen riesgo; monitorear adherencia","Trastorno del sueño (70–80%): higiene + melatonina; considerar retraso de fase"].map(item=>`
+    <div class="cause-item" style="border-left-color:${d.color};padding:8px 12px;margin-bottom:6px;"><span style="font-size:14px;flex-shrink:0;">•</span><span style="font-size:12.5px;color:var(--text2);line-height:1.5;">${item}</span></div>`).join('')}</div>`;
+}
+
+let currentTab = 'causas';
+function switchTab(tabId, btn) {
+  currentTab = tabId;
+  try { localStorage.setItem('lastTab', tabId); } catch(e) {}
+  document.querySelectorAll('.tab-panel').forEach(p => { p.classList.remove('active'); p.style.display = ''; });
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tabId).classList.add('active');
+  if (btn) btn.classList.add('active');
+  const sb = document.getElementById('searchBox');
+  if (sb && sb.value) clearSearch();
+  var c = document.getElementById('content'); if(c) c.scrollTop = 0;
+}
+
+document.addEventListener('click', function(e) {
+  if (dropdownOpen && !document.getElementById('header').contains(e.target)) {
+    dropdownOpen = false; document.getElementById('dropdown').classList.remove('open'); document.getElementById('sel-arrow').textContent = '▼';
+  }
+});
+
+function exportPDF() {
+  document.querySelectorAll('.tab-panel').forEach(function(p) { p.style.display = 'block'; });
+  setTimeout(function() { window.print(); setTimeout(function() {
+    document.querySelectorAll('.tab-panel').forEach(function(p) { p.style.display = ''; });
+    var tab = currentTab || 'causas'; var panel = document.getElementById('tab-' + tab); if (panel) panel.classList.add('active');
+    var navBtn = document.getElementById('nav-' + tab); if (navBtn) navBtn.classList.add('active');
+  }, 1200); }, 300);
+}
+
+buildDropdown(); renderAll();
+let lastTab = 'causas';
+try { lastTab = localStorage.getItem('lastTab') || 'causas'; } catch(e) {}
+if (document.getElementById('tab-' + lastTab)) switchTab(lastTab, document.getElementById('nav-' + lastTab));
+</script>
+
+</body>
+</html>
